@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <div align="center">
 
 # ⟡ IPHONE 17 PRO — CINEMATIC PRODUCT LAUNCH EXPERIENCE
@@ -114,3 +115,46 @@ The iPhone 17 Pro doesn't get a landing page here. It gets a stage.
 **⟡**
 
 </div>
+=======
+# iPhone 17 Pro — Landing Page
+
+> [**iphone17-landing-page.vercel.app**](https://iphone17-landing-page.vercel.app)
+
+A premium scroll-driven landing page concept for iPhone 17 Pro, built with Next.js 16, React 19, GSAP ScrollTrigger, and a 340-frame canvas animation engine.
+
+## ✦ Stack
+
+| Layer | Tech |
+|---|---|
+| Framework | Next.js 16, React 19 |
+| Animation | GSAP 3.14 + ScrollTrigger |
+| Rendering | Canvas 2D (ImageBitmap), 340 frames |
+| Typography | Orbitron + Syne (Google Fonts) |
+| Styling | Inline styles + CSS Grid, Tailwind 4 (minimal) |
+
+## ✦ Features
+
+- **Scroll-driven hero** — 340-frame canvas sequence plays on scroll (not video)
+- **Narrative loading screen** — tape expands → fullscreen → hollow clip-path reveal
+- **Product rotator** — 3 colorways with exit/enter phone animation
+- **Developer section** — scrollable card grid with a garage-door transition
+- **SVG text path** — type crawls along a bezier curve, swaps to infinite marquee
+- **Gooey footer** — 28 floating bubbles with SVG filter
+- **Responsive** — desktop, tablet (≤1024px), mobile (≤640px)
+- **Reduced motion** — `prefers-reduced-motion` respected
+
+## ✦ Quick start
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+---
+
+<p align="center">
+  <sub>Not affiliated with Apple Inc. This is a concept demo.</sub>
+</p>
+>>>>>>> 6ee3ac2 (Update README with live demo URL and premium formatting)
