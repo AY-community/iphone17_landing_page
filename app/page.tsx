@@ -115,12 +115,22 @@ export default function Home() {
   // ── Frame loading ─────────────────────────────────────────────────────────
   useEffect(() => {
     let loaded = 0;
+    let experienceStarted = false;
+    const startExperience = () => {
+      if (experienceStarted) return;
+      experienceStarted = true;
+      setState("complete");
+    };
+
+    // Do not block the launch sequence on every animation frame. The hero can
+    // render as soon as its first frame is available; the rest load in the background.
     const loadOne = async (i: number) => {
       try {
         const blob = await (await fetch(getFrameSrc(i))).blob();
         frames.current[i] = await createImageBitmap(blob);
+        if (i === 0) startExperience();
       } catch {}
-      if (++loaded === FRAME_COUNT) setState("complete");
+      ++loaded;
     };
     const queue = Array.from({ length: FRAME_COUNT }, (_, i) => i);
     let active = 0;
@@ -131,6 +141,10 @@ export default function Home() {
       }
     };
     pump();
+
+    // A slow or interrupted image request must never leave visitors on the loader.
+    const loaderTimeout = setTimeout(startExperience, 6000);
+    return () => clearTimeout(loaderTimeout);
   }, []);
 
   // ── Loading-screen state machine ──────────────────────────────────────────

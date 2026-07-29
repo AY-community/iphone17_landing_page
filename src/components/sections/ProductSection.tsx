@@ -295,7 +295,9 @@ export default function ProductSection({
               willChange: "opacity, transform",
             }}
           >
-            iPhone\u00a017\u00a0Pro.\n            <span
+            iPhone 17 Pro.
+            <br />
+            <span
               style={{
                 color: currentColor.hex,
                 transition: "color 0.65s cubic-bezier(0.4,0,0.2,1)",
