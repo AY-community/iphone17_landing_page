@@ -1,26 +1,405 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;700&family=Orbitron:wght@700;900&display=swap');
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@property --h {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 49.9%;
+}
+/* ─── Reset ────────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background: #000;
+  display: block;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar { display: none; }
+
+/* Kill any gap ScrollTrigger spacer divs might introduce */
+body > div[style*="position"] {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* ─── Loading screen ───────────────────────────────────────────────────────── */
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 100;
+}
+
+.loading-screen.hollow { background: transparent; }
+
+.loading-tape {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 38px;
+  width: 15vw;
+  border: 3px solid #FF6B35;
+  box-sizing: border-box;
+  transition: none;
+}
+
+.loading-tape.complete {
+  width: 100vw;
+  transition: width 0.55s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.loading-tape.expand {
+  height: 100vh;
+  top: 0;
+  transform: translateY(0);
+  transition:
+    height    0.45s cubic-bezier(0.76, 0, 0.24, 1),
+    top       0.45s cubic-bezier(0.76, 0, 0.24, 1),
+    transform 0.45s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.loading-tape-fill {
+  position: absolute;
+  inset: 0;
+  background: #FF6B35;
+}
+
+.loading-tape.hollow .loading-tape-fill {
+  --h: 0%;
+  clip-path: polygon(
+    0%   0%,
+    100% 0%,
+    100% 100%,
+    0%   100%,
+    0%   var(--h),
+    var(--h) var(--h),
+    var(--h) calc(100% - var(--h)),
+    calc(100% - var(--h)) calc(100% - var(--h)),
+    calc(100% - var(--h)) var(--h),
+    var(--h) var(--h),
+    0%   var(--h)
+  );
+  transition: --h 0.6s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.loading-tape-label {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: nowrap;
+  user-select: none;
+  z-index: 1;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.loading-tape.expand .loading-tape-label { opacity: 0; }
+
+/* ─── Keyframes ────────────────────────────────────────────────────────────── */
+@keyframes tape-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes float-phone-straight {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-18px); }
+}
+
+@keyframes float-phone {
+  0%, 100% { transform: perspective(700px) rotateY(-24deg) rotateX(8deg) rotate(-7deg) translateY(0px); }
+  50%       { transform: perspective(700px) rotateY(-18deg) rotateX(4deg) rotate(-4deg) translateY(-24px); }
+}
+
+@keyframes orbit-ring {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+  50%       { opacity: 1;   transform: translate(-50%, -50%) scale(1.08); }
+}
+
+@keyframes phone-exit-right {
+  0%   { transform: translateX(0px) scale(1); opacity: 1; filter: blur(0px); }
+  60%  { opacity: 0.4; }
+  100% { transform: translateX(140%) scale(0.86); opacity: 0; filter: blur(6px); }
+}
+
+@keyframes phone-enter-left {
+  0%   { transform: translateX(-140%) scale(0.86); opacity: 0; filter: blur(6px); }
+  40%  { opacity: 0.6; }
+  100% { transform: translateX(0px) scale(1); opacity: 1; filter: blur(0px); }
+}
+
+@keyframes bubble-float-up {
+  0%   { top: 50%; transform: translate(-50%, -50%) scale(1); }
+  100% { top: calc(var(--uplift) * -1); transform: translate(-50%, -50%) scale(0); }
+}
+
+/* ─── Swatch button ────────────────────────────────────────────────────────── */
+.color-swatch {
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
+  cursor: pointer;
+}
+.color-swatch:hover { transform: scale(1.18) !important; }
+
+/* ─── Gooey bubble ─────────────────────────────────────────────────────────── */
+.gooey-bubble {
+  position: absolute;
+  background: #FF6B35;
+  border-radius: 50%;
+  top: 50%;
+  left: var(--pos-x, 50%);
+  width: var(--dim, 5rem);
+  height: var(--dim, 5rem);
+  transform: translate(-50%, -50%);
+  animation: bubble-float-up var(--dur, 4s) ease-in infinite;
+  animation-delay: var(--delay, 0s);
+  will-change: top, transform;
+}
+
+/* ─── Hero section ─────────────────────────────────────────────────────────── */
+.hero-section {
+  width: 100%;
+  height: 100vh;
+  background: rgb(0, 0, 0);
+  margin: 0;
+  padding: 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* ─── Header ───────────────────────────────────────────────────────────────── */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 40px;
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.site-header nav {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  padding: 14px 40px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 100, 100, .15),
+    rgba(255, 180,  50, .12),
+    rgba( 80, 220, 120, .12),
+    rgba( 50, 150, 255, .15),
+    rgba(180,  80, 255, .12)
+  );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Product section ──────────────────────────────────────────────────────── */
+.product-grid {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1320px;
+  padding: 0 clamp(24px, 5vw, 80px);
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(20px, 3vw, 56px);
+  align-items: center;
+  height: 100%;
+}
+
+/* ─── Developer section ────────────────────────────────────────────────────── */
+.dev-grid {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(20px, 3vw, 56px);
+  padding: 0 clamp(24px, 5vw, 80px);
+  box-sizing: border-box;
+  align-items: center;
+}
+
+/* ─── Dev card ─────────────────────────────────────────────────────────────── */
+.dev-card {
+  height: 220px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dev-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  user-select: none;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dev-card:hover img { transform: scale(1.09); }
+
+/* ─── Footer ───────────────────────────────────────────────────────────────── */
+.site-footer {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  background: #FF6B35;
+  height: 50vh;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(32px, 4vh, 60px) clamp(24px, 8vw, 120px);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tablet  (≤ 1024 px) ─────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .site-header {
+    padding: 20px 24px;
+  }
+
+  .site-header nav {
+    gap: 24px;
+    padding: 12px 24px;
+  }
+
+  .product-grid,
+  .dev-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    height: auto;
+    padding: 0 clamp(20px, 4vw, 48px);
+    gap: 32px;
+    overflow-y: auto;
+  }
+
+  /* On tablet the image panel shrinks a little */
+  .product-grid > div:last-child {
+    height: clamp(260px, 38vh, 420px);
+  }
+
+  .dev-card { height: 180px; }
+}
+
+/* ── Mobile  (≤ 640 px) ──────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Header — collapse nav, hide contact */
+  .site-header {
+    padding: 16px 20px;
+  }
+
+  .site-header nav {
+    display: none;               /* hidden; add a hamburger when needed */
+  }
+
+  /* Hero bottom-left / bottom-right cards */
+  .hero-bottom-left {
+    bottom: 20px !important;
+    left: 16px !important;
+    right: 16px !important;
+  }
+
+  .hero-bottom-left h2 {
+    font-size: 36px !important;
+  }
+
+  .hero-bottom-right {
+    display: none !important;   /* too cramped on phones */
+  }
+
+  /* Product section — stack, tighten padding */
+  .product-grid {
+    grid-template-columns: 1fr;
+    padding: 0 16px;
+    gap: 24px;
+    align-content: center;
+  }
+
+  .product-grid > div:last-child {
+    height: clamp(220px, 35vh, 340px);
+  }
+
+  /* Dev section — stack + single-column cards */
+  .dev-grid {
+    grid-template-columns: 1fr;
+    padding: 0 16px;
+    gap: 24px;
+  }
+
+  .dev-cards-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dev-card { height: 200px; }
+
+  /* Footer */
+  .site-footer {
+    height: auto;
+    min-height: unset;
+    padding: 48px 20px;
+  }
+
+  .site-footer h2 { font-size: clamp(24px, 7vw, 40px) !important; }
+
+  /* Loading tape */
+  .loading-tape { width: 40vw; }
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
