@@ -77,6 +77,7 @@ export default function Home() {
   const scrolledRef = useRef(false);
 
   const [state, setState]             = useState<LoadState>("idle");
+  const [loadedFrames, setLoadedFrames] = useState(0);
   const [shown, setShown]             = useState(false);
   const [activeColor, setActiveColor] = useState(0);
   const [isProductSectionInView, setIsProductSectionInView] = useState(false);
@@ -122,15 +123,15 @@ export default function Home() {
       setState("complete");
     };
 
-    // Do not block the launch sequence on every animation frame. The hero can
-    // render as soon as its first frame is available; the rest load in the background.
+    // Advance the tape for every decoded frame, so visitors can see loading progress.
     const loadOne = async (i: number) => {
       try {
         const blob = await (await fetch(getFrameSrc(i))).blob();
         frames.current[i] = await createImageBitmap(blob);
-        if (i === 0) startExperience();
       } catch {}
-      ++loaded;
+      loaded++;
+      setLoadedFrames(loaded);
+      if (loaded === FRAME_COUNT) startExperience();
     };
     const queue = Array.from({ length: FRAME_COUNT }, (_, i) => i);
     let active = 0;
@@ -143,7 +144,7 @@ export default function Home() {
     pump();
 
     // A slow or interrupted image request must never leave visitors on the loader.
-    const loaderTimeout = setTimeout(startExperience, 6000);
+    const loaderTimeout = setTimeout(startExperience, 8000);
     return () => clearTimeout(loaderTimeout);
   }, []);
 
@@ -409,6 +410,8 @@ export default function Home() {
 
   const tapeContent  = Array(8).fill(TAPE_WORDS).join("");
   const currentColor = IPHONE_COLORS[activeColor];
+  const loadingProgress = Math.round((loadedFrames / FRAME_COUNT) * 100);
+  const loadingTapeWidth = `${5 + Math.min(loadingProgress, 100) * 0.9}vw`;
 
   return (
     <>
@@ -611,9 +614,12 @@ export default function Home() {
       {/* ── Loading screen ── */}
       {state !== "ready" && (
         <div className={`loading-screen${state === "hollow" ? " hollow" : ""}`}>
-          <div className={tapeClass}>
+          <div
+            className={tapeClass}
+            style={state === "idle" ? { width: loadingTapeWidth } : undefined}
+          >
             <div className="loading-tape-fill" />
-            <span className="loading-tape-label">Loading</span>
+            <span className="loading-tape-label">Loading {loadingProgress}%</span>
           </div>
         </div>
       )}
